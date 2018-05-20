@@ -19,7 +19,7 @@ function g($x) {
 }
 
 function render($row) {
-	return "{$row->fn} <i>{$row->mime}</i>";
+	return "{$row->id_upload}: {$row->fn} <i>{$row->mime}</i>";
 }
 
 function flt($row) {
@@ -29,8 +29,7 @@ function flt($row) {
 
 Debug::$html = true;
 Debug::$enabled = true;
-Cache::$trace = true;
-Cache::$memcached = new Memcached();
+//Cache::$providers = array(new Trace());
 
 $n = new Sql('SELECT 1 a, 2 b UNION ALL SELECT 4, 5');
 $n->debug()->map('f', 'b')->cache(10) . "\n";

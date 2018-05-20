@@ -176,12 +176,27 @@ class Filter extends Apply {
 	}
 }
 
+interface CacheProvider {
+	public function get($key);
+	public function set($key, $value, $exp);
+}
+
+class Trace implements CacheProvider {
+	public function get($key) {
+		return false;
+	}
+
+	public function set($key, $value, $exp) {
+		//TODO append to a static array
+		trigger_error(
+			htmlentities("$key <- ".var_export($value, true)),
+			E_USER_NOTICE);
+	}
+}
+
 class Cache extends Pipeline {
-	private static $once;
-	public static $disabled;
-	public static $trace;
-	//FIXME generalize this (CacheProvider?)
-	public static $memcached;
+	private $expiration;
+	public static $providers;
 
 	public function __construct($exp, $p) {
 		parent::__construct($p);
@@ -193,31 +208,27 @@ class Cache extends Pipeline {
 		return $this->parent->describe(); // . "->cache($this->expiration)";
 	}
 
+	private function getFirst($key) {
+		if (!empty(self::$providers))
+			foreach (self::$providers as $x)
+				if ($cached = $x->get($key))
+					return $cached;
+		return false;
+	}
+
+	private function setAll($key, $value, $exp) {
+		if (!empty(self::$providers))
+			foreach (self::$providers as $x)
+				$x->set($key, $value, $exp);
+	}
+
 	public function evaluate() {
-		if (self::$disabled)
-			return $this->parent->evaluate();
-		$descr = $this->parent->describe();
-		$key = md5($descr);
-		if (self::$memcached && $cached=self::$memcached->get($key)) {
-			if (self::$trace)
-				trigger_error(
-					htmlentities("$descr -> ".var_export($cached, true)),
-					E_USER_NOTICE);
+		$key = $this->parent->describe();
+		if ($cached = $this->getFirst($key))
 			return $cached;
-		}
 		else {
 			$value = $this->parent->evaluate();
-			if (self::$memcached) {
-				self::$memcached->set($key, $value, $this->expiration);
-				if (self::$trace)
-					trigger_error(
-						htmlentities("$descr <- ".var_export($value, true)),
-						E_USER_NOTICE);
-			}
-			elseif (!isset(self::$once)) {
-				trigger_error("Memcached not configured", E_USER_WARNING);
-				self::$once = false;
-			}
+			$this->setAll($key, $value, $this->expiration);
 			return $value;
 		}
 	}
