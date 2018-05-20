@@ -1,11 +1,4 @@
 <?php
-//fatal but it gives a stack trace...
-class Opaque_callable extends Exception {
-	public function __construct() {
-		parent::__construct("expected a function name");
-	}
-}
-
 abstract class Pipeline {
 	protected $parent;
 	public function __construct($p) { $this->parent = $p; }
@@ -103,7 +96,7 @@ class Apply extends Pipeline {
 
 	public function __construct($f, $a, $p) {
 		if (!is_string($f))
-			throw new Opaque_callable();
+			throw new InvalidArgumentException("expected a function name");
 		else {
 			parent::__construct($p);
 			$this->f = $f;
