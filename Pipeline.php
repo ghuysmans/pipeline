@@ -32,7 +32,7 @@ abstract class Pipeline {
 	}
 
 	public function debug() { return new Debug($this); }
-	public function cache($p, $exp=null) { return new Cache($exp, $p, $this); }
+	public function cache($p, $exp=0) { return new Cache($exp, $p, $this); }
 }
 
 class Wrapper extends Pipeline {

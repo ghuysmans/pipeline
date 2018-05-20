@@ -31,7 +31,7 @@ class File_cache implements CacheProvider {
 	public function set($key, $value, $exp) {
 		$fn = $this->fn($key);
 		file_put_contents($fn, var_export($value, true));
-		$exp = is_null($exp) ? 0 : time()+$exp;
+		$exp = $exp || time()+$exp;
 		touch($fn, $exp);
 	}
 }
@@ -60,7 +60,7 @@ class Database_cache implements CacheProvider {
 		$stm = $this->pdo->prepare(
 			'REPLACE INTO cache(k, v, e) VALUES (?, ?, ' .
 			'DATE_ADD(NOW(), INTERVAL ? SECOND))');
-		$stm->execute(array($key, var_export($value, true), $exp));
+		$stm->execute(array($key, var_export($value, true), $exp ? $exp : null));
 	}
 }
 
@@ -79,7 +79,7 @@ class Session_cache implements CacheProvider {
 
 	public function set($key, $value, $exp) {
 		$_SESSION["$key"] = var_export($value, true);
-		if (!is_null($exp))
+		if ($exp)
 			$_SESSION["$key.exp"] = time() + $exp;
 	}
 }
