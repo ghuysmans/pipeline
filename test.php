@@ -1,13 +1,6 @@
 <?php
 require_once('lib.php');
-
-//FIXME allow testing with and without Memcached
-class Memcached {
-	public function get($k) {
-	}
-	public function set($k, $v, $e) {
-	}
-}
+require_once('Cache.php');
 
 
 function f($i, $x) {
