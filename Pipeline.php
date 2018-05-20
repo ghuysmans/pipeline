@@ -104,14 +104,14 @@ class Apply extends Pipeline {
 		}
 	}
 
-	protected function describe_args() {
+	protected function describeArgs() {
 		return '(' . implode(', ', array_map(
 			function($x) {return var_export($x, true);},
 			array_merge(array($this->f), $this->args))) . ')';
 	}
 
 	public function describe() {
-		return $this->parent->describe() . '->apply' . $this->describe_args();
+		return $this->parent->describe() . '->apply' . $this->describeArgs();
 	}
 
 	public function evaluate() {
@@ -126,7 +126,7 @@ class Map extends Apply {
 	}
 
 	public function describe() {
-		return $this->parent->describe() . '->map' . $this->describe_args();
+		return $this->parent->describe() . '->map' . $this->describeArgs();
 	}
 
 	public function evaluate() {
@@ -144,7 +144,7 @@ class Filter extends Apply {
 	}
 
 	public function describe() {
-		return $this->parent->describe() . '->filter' . $this->describe_args();
+		return $this->parent->describe() . '->filter' . $this->describeArgs();
 	}
 
 	public function evaluate() {

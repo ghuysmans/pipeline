@@ -28,7 +28,7 @@ class Md5CacheProxy implements CacheProvider {
 /**
  * Filesystem cache (with future mtime)
  */
-class File_cache implements CacheProvider {
+class FileCache implements CacheProvider {
 	private $root;
 
 	public function __construct($r) {
@@ -58,7 +58,7 @@ class File_cache implements CacheProvider {
 /**
  * Old-style in-database cache
  */
-class Database_cache implements CacheProvider {
+class DatabaseCache implements CacheProvider {
 	private $pdo;
 
 	public function __construct($db) {
@@ -86,7 +86,7 @@ class Database_cache implements CacheProvider {
 /**
  * Flaky session-based implementation (no garbage collection)
  */
-class Session_cache implements CacheProvider {
+class SessionCache implements CacheProvider {
 	public function get($key) {
 		$exp = "$key.exp";
 		if (isset($_SESSION[$key]) &&
