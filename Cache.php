@@ -6,6 +6,29 @@ interface CacheProvider {
 	public function set($key, $value, $exp);
 }
 
+/**
+ * Flaky session-based implementation (no garbage collection)
+ */
+class Session_cache implements CacheProvider {
+	public function get($key) {
+		$exp = "$key.exp";
+		if (isset($_SESSION[$key]) &&
+				(!isset($_SESSION[$exp]) || time()<=$_SESSION[$exp]))
+			return eval("return {$_SESSION[$key]};");
+		else
+			return false;
+	}
+
+	public function set($key, $value, $exp) {
+		$_SESSION["$key"] = var_export($value, true);
+		if (!empty($exp))
+			$_SESSION["$key.exp"] = time() + $exp;
+	}
+}
+
+/**
+ * Fake provider to allow tracing cache accesses
+ */
 class Trace implements CacheProvider {
 	public function get($key) {
 		return false;
@@ -18,6 +41,7 @@ class Trace implements CacheProvider {
 			E_USER_NOTICE);
 	}
 }
+
 
 class Cache extends Pipeline {
 	private $expiration;

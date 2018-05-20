@@ -1,6 +1,7 @@
 <?php
 require_once('lib.php');
 require_once('Cache.php');
+session_start();
 
 
 function f($i, $x) {
@@ -12,6 +13,7 @@ function g($x) {
 }
 
 function render($row) {
+	sleep(2);
 	return "{$row->id_upload}: {$row->fn} <i>{$row->mime}</i>";
 }
 
@@ -22,7 +24,7 @@ function flt($row) {
 
 Debug::$html = true;
 Debug::$enabled = true;
-//Cache::$providers = array(new Trace());
+Cache::$providers = array(new Session_cache("cache"));
 
 $n = new Sql('SELECT 1 a, 2 b UNION ALL SELECT 4, 5');
 $n->debug()->map('f', 'b')->cache(10) . "\n";
