@@ -24,7 +24,13 @@ function flt($row) {
 
 Debug::$html = true;
 Debug::$enabled = true;
-$p1 = array(new FileCache('/tmp'));
+if (class_exists('Memcached')) {
+	$mc = new Memcached();
+	$mc->addServer('localhost', 11211);
+	$p1 = array(new Md5CacheProxy($mc));
+}
+else
+	$p1 = array(new FileCache('/tmp'));
 //$p1 = array(new DatabaseCache($db));
 //$p1 = array(new SessionCache("cache"));
 
