@@ -7,6 +7,25 @@ interface CacheProvider {
 }
 
 /**
+ * Proxy class, because Memcached doesn't like our strange keys
+ */
+class Md5CacheProxy implements CacheProvider {
+	private $real;
+
+	public function __construct($r) {
+		$this->real = $r;
+	}
+
+	public function get($key) {
+		return $this->real->get(md5($key));
+	}
+
+	public function set($key, $value, $exp) {
+		return $this->real->set(md5($key), $value, $exp);
+	}
+}
+
+/**
  * Filesystem cache (with future mtime)
  */
 class File_cache implements CacheProvider {
