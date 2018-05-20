@@ -7,6 +7,34 @@ interface CacheProvider {
 }
 
 /**
+ * Old-style in-database cache
+ */
+class Database_cache implements CacheProvider {
+	private $pdo;
+
+	public function __construct($db) {
+		$this->pdo = $db;
+	}
+
+	public function get($key) {
+		$stm = $this->pdo->prepare(
+			'SELECT v FROM cache WHERE k=? AND (e IS NULL OR NOW()<=e)');
+		$stm->execute(array($key));
+		if ($stm->rowCount())
+			return eval('return ' . $stm->fetch(PDO::FETCH_NUM)[0] . ';');
+		else
+			return false;
+	}
+
+	public function set($key, $value, $exp) {
+		$stm = $this->pdo->prepare(
+			'REPLACE INTO cache(k, v, e) VALUES (?, ?, ' .
+			'DATE_ADD(NOW(), INTERVAL ? SECOND))');
+		$stm->execute(array($key, var_export($value, true), $exp));
+	}
+}
+
+/**
  * Flaky session-based implementation (no garbage collection)
  */
 class Session_cache implements CacheProvider {
@@ -21,7 +49,7 @@ class Session_cache implements CacheProvider {
 
 	public function set($key, $value, $exp) {
 		$_SESSION["$key"] = var_export($value, true);
-		if (!empty($exp))
+		if (!is_null($exp))
 			$_SESSION["$key.exp"] = time() + $exp;
 	}
 }
