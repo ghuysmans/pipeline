@@ -7,6 +7,36 @@ interface CacheProvider {
 }
 
 /**
+ * Filesystem cache (with future mtime)
+ */
+class File_cache implements CacheProvider {
+	private $root;
+
+	public function __construct($r) {
+		$this->root = $r;
+	}
+
+	private function fn($key) {
+		return $this->root . '/' . md5($key);
+	}
+
+	public function get($key) {
+		$fn = $this->fn($key);
+		if (($s=@stat($fn)) && (!$s['mtime'] || time()<=$s['mtime']))
+			return eval('return ' . file_get_contents($fn) . ';');
+		else
+			return false;
+	}
+
+	public function set($key, $value, $exp) {
+		$fn = $this->fn($key);
+		file_put_contents($fn, var_export($value, true));
+		$exp = is_null($exp) ? 0 : time()+$exp;
+		touch($fn, $exp);
+	}
+}
+
+/**
  * Old-style in-database cache
  */
 class Database_cache implements CacheProvider {

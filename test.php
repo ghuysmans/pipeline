@@ -24,7 +24,8 @@ function flt($row) {
 
 Debug::$html = true;
 Debug::$enabled = true;
-$p1 = array(new Database_cache($db));
+$p1 = array(new File_cache('/tmp'));
+//$p1 = array(new Database_cache($db));
 //$p1 = array(new Session_cache("cache"));
 
 $n = new Sql('SELECT 1 a, 2 b UNION ALL SELECT 4, 5');
