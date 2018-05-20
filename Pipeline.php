@@ -19,45 +19,27 @@ abstract class Pipeline {
 	}
 
 	public function apply($f) {
-		if (!isset($f))
-			;
-		elseif (!is_string($f))
-			throw new Opaque_callable();
-		else {
-			$args = func_get_args();
-			array_shift($args);
-			return new Apply($f, $args, $this);
-		}
+		$args = func_get_args();
+		array_shift($args);
+		return new Apply($f, $args, $this);
 	}
 
 	public function map($f) {
-		if (!isset($f))
-			;
-		elseif (!is_string($f))
-			throw new Opaque_callable();
-		else {
-			//we need this to allow partially applying $f
-			$args = func_get_args();
-			array_shift($args);
-			return new Map($f, $args, $this);
-		}
+		//we need this to allow partially applying $f
+		$args = func_get_args();
+		array_shift($args);
+		return new Map($f, $args, $this);
 	}
 
 	public function filter($f) {
-		if (!isset($f))
-			;
-		elseif (!is_string($f))
-			throw new Opaque_callable();
-		else {
-			//we need this to allow partially applying $f
-			$args = func_get_args();
-			array_shift($args);
-			return new Filter($f, $args, $this);
-		}
+		//we need this to allow partially applying $f
+		$args = func_get_args();
+		array_shift($args);
+		return new Filter($f, $args, $this);
 	}
 
 	public function debug() { return new Debug($this); }
-	public function cache($exp=null) { return new Cache($exp, $this); }
+	public function cache($p, $exp=null) { return new Cache($exp, $p, $this); }
 }
 
 class Wrapper extends Pipeline {
@@ -120,9 +102,13 @@ class Apply extends Pipeline {
 	protected $f;
 
 	public function __construct($f, $a, $p) {
-		parent::__construct($p);
-		$this->f = $f;
-		$this->args = $a;
+		if (!is_string($f))
+			throw new Opaque_callable();
+		else {
+			parent::__construct($p);
+			$this->f = $f;
+			$this->args = $a;
+		}
 	}
 
 	protected function describe_args() {

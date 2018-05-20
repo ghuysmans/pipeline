@@ -45,30 +45,31 @@ class Trace implements CacheProvider {
 
 class Cache extends Pipeline {
 	private $expiration;
-	public static $providers;
+	private $providers;
 
-	public function __construct($exp, $p) {
+	public function __construct($exp, $prov, $p) {
+		if (!is_array($prov))
+			throw new InvalidArgumentException("providers must be an array");
 		parent::__construct($p);
 		$this->expiration = $exp;
+		$this->providers = $prov;
 	}
 
 	public function describe() {
 		//don't print cache(), it'd influence caching
-		return $this->parent->describe(); // . "->cache($this->expiration)";
+		return $this->parent->describe();
 	}
 
 	private function getFirst($key) {
-		if (!empty(self::$providers))
-			foreach (self::$providers as $x)
-				if ($cached = $x->get($key))
-					return $cached;
+		foreach ($this->providers as $x)
+			if ($cached = $x->get($key))
+				return $cached;
 		return false;
 	}
 
 	private function setAll($key, $value, $exp) {
-		if (!empty(self::$providers))
-			foreach (self::$providers as $x)
-				$x->set($key, $value, $exp);
+		foreach ($this->providers as $x)
+			$x->set($key, $value, $exp);
 	}
 
 	public function evaluate() {
