@@ -31,7 +31,7 @@ abstract class Pipeline {
 		return new Filter($f, $args, $this);
 	}
 
-	public function debug() { return new Debug($this); }
+	public function debug() { return new Cache(0, array(new Debug()), $this); }
 	public function cache($p, $exp=0) { return new Cache($exp, $p, $this); }
 }
 
@@ -155,29 +155,69 @@ class Filter extends Apply {
 	}
 }
 
-class Debug extends Pipeline {
-	public static $enabled;
-	public static $html;
 
-	public function __construct($p) {
+interface CacheProvider {
+	public function get($key);
+	public function set($key, $value, $exp);
+}
+
+/**
+ * Fake provider to allow tracing cache accesses
+ */
+class Debug implements CacheProvider {
+	public static $enabled = false;
+
+	public function get($key) {
+		return false;
+	}
+
+	public function set($key, $value, $exp) {
+		//TODO append to a static array
+		if (self::$enabled)
+			trigger_error(
+				htmlentities("$key <- ".var_export($value, true)),
+				E_USER_NOTICE);
+	}
+}
+
+
+class Cache extends Pipeline {
+	private $expiration;
+	private $providers;
+
+	public function __construct($exp, $prov, $p) {
+		if (!is_array($prov))
+			throw new InvalidArgumentException("providers must be an array");
 		parent::__construct($p);
+		$this->expiration = $exp;
+		$this->providers = $prov;
 	}
 
 	public function describe() {
-		//don't print debug(), it'd influence caching
+		//don't print cache(), it'd influence caching
 		return $this->parent->describe();
 	}
 
+	private function getFirst($key) {
+		foreach ($this->providers as $x)
+			if ($cached = $x->get($key))
+				return $cached;
+		return false;
+	}
+
+	private function setAll($key, $value, $exp) {
+		foreach ($this->providers as $x)
+			$x->set($key, $value, $exp);
+	}
+
 	public function evaluate() {
-		$v = $this->parent->evaluate();
-		if (self::$enabled) {
-			if (self::$html)
-				echo "<pre>";
-			echo $this->parent->describe() . ': ';
-			print_r($v);
-			if (self::$html)
-				echo "</pre>\n";
+		$key = $this->parent->describe();
+		if ($cached = $this->getFirst($key))
+			return $cached;
+		else {
+			$value = $this->parent->evaluate();
+			$this->setAll($key, $value, $this->expiration);
+			return $value;
 		}
-		return $v;
 	}
 }

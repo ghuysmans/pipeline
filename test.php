@@ -22,7 +22,6 @@ function flt($row) {
 }
 
 
-Debug::$html = true;
 Debug::$enabled = true;
 if (class_exists('Memcached')) {
 	$mc = new Memcached();
