@@ -91,13 +91,13 @@ class SessionCache implements CacheProvider {
 		$exp = "$key.exp";
 		if (isset($_SESSION[$key]) &&
 				(!isset($_SESSION[$exp]) || time()<=$_SESSION[$exp]))
-			return eval("return {$_SESSION[$key]};");
+			return $_SESSION[$key];
 		else
 			return false;
 	}
 
 	public function set($key, $value, $exp) {
-		$_SESSION["$key"] = var_export($value, true);
+		$_SESSION["$key"] = $value;
 		if ($exp)
 			$_SESSION["$key.exp"] = time() + $exp;
 	}
