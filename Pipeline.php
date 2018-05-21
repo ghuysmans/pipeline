@@ -33,6 +33,7 @@ abstract class Pipeline {
 
 	public function debug() { return new Cache(0, array(new Debug()), $this); }
 	public function cache($p, $exp=0) { return new Cache($exp, $p, $this); }
+	public function once() { return new Cache(0, array(new Once()), $this); }
 }
 
 class Wrapper extends Pipeline {
@@ -159,6 +160,18 @@ class Filter extends Apply {
 interface CacheProvider {
 	public function get($key);
 	public function set($key, $value, $exp);
+}
+
+class Once implements CacheProvider {
+	private $cache = false; //"not in cache"
+
+	public function get($key) {
+		return $this->cache;
+	}
+
+	public function set($key, $value, $exp) {
+		$this->cache = $value;
+	}
 }
 
 /**

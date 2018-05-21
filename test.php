@@ -37,4 +37,6 @@ $n = new Sql('SELECT 1 a, 2 b UNION ALL SELECT 4, 5');
 $n->debug()->map('f', 'b')->cache($p1, 10) . "\n";
 $o = new Sql('SELECT * FROM upload WHERE id_upload<?', 13);
 echo $o->filter('flt')->apply('array_map', 'render')->cache($p1, 10) . "\n";
-//echo wrap(9)->apply(function($x){})->cache() . "\n";
+$v = wrap(9)->debug()->once();
+echo $v;
+echo $v;
